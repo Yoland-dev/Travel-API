@@ -1,0 +1,4919 @@
+openapi: 3.0.3
+info:
+  title: Travel Itinerary Planning & Booking API
+  version: 1.0.0
+  description: Plan trips, book stays and activities, track budgets and collaborate.
+paths:
+  /api/v1/accommodations/:
+    get:
+      operationId: v1_accommodations_list
+      description: Browse accommodations (public).
+      parameters:
+      - in: query
+        name: accommodation_type
+        schema:
+          type: string
+          enum:
+          - bnb
+          - hostel
+          - hotel
+          - rental
+          - resort
+        description: |-
+          * `hotel` - Hotel
+          * `hostel` - Hostel
+          * `rental` - Vacation Rental
+          * `resort` - Resort
+          * `bnb` - B&B
+      - in: query
+        name: destination
+        schema:
+          type: integer
+      - in: query
+        name: guests
+        schema:
+          type: integer
+      - in: query
+        name: is_available
+        schema:
+          type: boolean
+      - in: query
+        name: max_price
+        schema:
+          type: number
+      - in: query
+        name: min_price
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAccommodationList'
+          description: ''
+  /api/v1/accommodations/{id}/:
+    get:
+      operationId: v1_accommodations_retrieve
+      description: Browse accommodations (public).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this accommodation.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Accommodation'
+          description: ''
+  /api/v1/accounts/login/:
+    post:
+      operationId: v1_accounts_login_create
+      description: Authenticate with username (or email) and password; returns JWT
+        tokens.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/accounts/logout/:
+    post:
+      operationId: v1_accounts_logout_create
+      description: Blacklist the supplied refresh token.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Logout'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Logout'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '205':
+          description: No response body
+  /api/v1/accounts/password/change/:
+    post:
+      operationId: v1_accounts_password_change_create
+      description: Change the current user's password (requires the old password).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/accounts/password/reset/:
+    post:
+      operationId: v1_accounts_password_reset_create
+      description: Email a reset token. Always answers 200 so accounts cannot be enumerated.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/accounts/password/reset/confirm/:
+    post:
+      operationId: v1_accounts_password_reset_confirm_create
+      description: Set a new password using the uid/token from the reset email.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/accounts/profile/:
+    get:
+      operationId: v1_accounts_profile_retrieve
+      description: GET, PUT or PATCH the authenticated user's profile.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: v1_accounts_profile_update
+      description: GET, PUT or PATCH the authenticated user's profile.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: v1_accounts_profile_partial_update
+      description: GET, PUT or PATCH the authenticated user's profile.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/accounts/register/:
+    post:
+      operationId: v1_accounts_register_create
+      description: |-
+        Register a new user and return JWT tokens.
+
+        Example: POST /api/v1/accounts/register/ with username, email, password, password_confirm.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+            examples:
+              Register:
+                value:
+                  username: amina
+                  email: amina@example.com
+                  password: StrongPass123!
+                  password_confirm: StrongPass123!
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/accounts/token/refresh/:
+    post:
+      operationId: v1_accounts_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/activities/:
+    get:
+      operationId: v1_activities_list
+      description: Browse activities (public).
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: string
+          enum:
+          - attraction
+          - dining
+          - entertainment
+          - outdoor
+          - shopping
+          - tour
+        description: |-
+          * `tour` - Tour
+          * `attraction` - Attraction
+          * `dining` - Dining
+          * `shopping` - Shopping
+          * `entertainment` - Entertainment
+          * `outdoor` - Outdoor
+      - in: query
+        name: destination
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedActivityList'
+          description: ''
+  /api/v1/activities/{id}/:
+    get:
+      operationId: v1_activities_retrieve
+      description: Browse activities (public).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this activity.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+          description: ''
+  /api/v1/activity-logs/:
+    get:
+      operationId: v1_activity_logs_list
+      description: Audit trail of actions on trips you own or share.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedActivityLogList'
+          description: ''
+  /api/v1/activity-logs/{id}/:
+    get:
+      operationId: v1_activity_logs_retrieve
+      description: Audit trail of actions on trips you own or share.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityLog'
+          description: ''
+  /api/v1/analytics/:
+    get:
+      operationId: v1_analytics_retrieve
+      description: Totals, averages and status breakdown.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/analytics/budget-summary/:
+    get:
+      operationId: v1_analytics_budget_summary_retrieve
+      description: Spending by category and trips that exceed their budget.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/analytics/destination-preferences/:
+    get:
+      operationId: v1_analytics_destination_preferences_retrieve
+      description: Which destination categories, climates and places you choose most.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/bookings/:
+    get:
+      operationId: v1_bookings_list
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBookingList'
+          description: ''
+    post:
+      operationId: v1_bookings_create
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/{id}/:
+    get:
+      operationId: v1_bookings_retrieve
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+    put:
+      operationId: v1_bookings_update
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+    patch:
+      operationId: v1_bookings_partial_update
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBooking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBooking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBooking'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+    delete:
+      operationId: v1_bookings_destroy
+      description: Manage accommodation and activity bookings; confirm and cancel
+        actions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/bookings/{id}/cancel/:
+    post:
+      operationId: v1_bookings_cancel_create
+      description: Cancel a booking and report the refund amount.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/{id}/confirm/:
+    post:
+      operationId: v1_bookings_confirm_create
+      description: Confirm a pending booking and issue a confirmation code.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Booking'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Booking'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+          description: ''
+  /api/v1/bookings/bulk-update/:
+    post:
+      operationId: v1_bookings_bulk_update_create
+      description: |-
+        Confirm or cancel several of your bookings in one request.
+
+        Example body: {"updates": [{"id": 1, "action": "confirm"}, {"id": 2, "action": "cancel"}],
+        "all_or_nothing": false}
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkBookingUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BulkBookingUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BulkBookingUpdate'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/bookings/items/{id}/:
+    get:
+      operationId: v1_bookings_items_retrieve
+      description: Retrieve, update or delete one of your bookings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+    put:
+      operationId: v1_bookings_items_update
+      description: Retrieve, update or delete one of your bookings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookingDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookingDetail'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+    patch:
+      operationId: v1_bookings_items_partial_update
+      description: Retrieve, update or delete one of your bookings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBookingDetail'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingDetail'
+          description: ''
+    delete:
+      operationId: v1_bookings_items_destroy
+      description: Retrieve, update or delete one of your bookings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/budgets/itinerary/{trip_id}/:
+    get:
+      operationId: v1_budgets_itinerary_retrieve
+      description: GET/PUT/PATCH the category budget of a trip (edit needs editor
+        rights).
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    put:
+      operationId: v1_budgets_itinerary_update
+      description: GET/PUT/PATCH the category budget of a trip (edit needs editor
+        rights).
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Budget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Budget'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+    patch:
+      operationId: v1_budgets_itinerary_partial_update
+      description: GET/PUT/PATCH the category budget of a trip (edit needs editor
+        rights).
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBudget'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+  /api/v1/daily-plans/:
+    get:
+      operationId: v1_daily_plans_list
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDailyPlanList'
+          description: ''
+    post:
+      operationId: v1_daily_plans_create
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPlan'
+          description: ''
+  /api/v1/daily-plans/{id}/:
+    get:
+      operationId: v1_daily_plans_retrieve
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPlan'
+          description: ''
+    put:
+      operationId: v1_daily_plans_update
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DailyPlan'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPlan'
+          description: ''
+    patch:
+      operationId: v1_daily_plans_partial_update
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDailyPlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDailyPlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDailyPlan'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyPlan'
+          description: ''
+    delete:
+      operationId: v1_daily_plans_destroy
+      description: 'Day-by-day planning: CRUD on the days of trips you can access.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/destinations/:
+    get:
+      operationId: v1_destinations_list
+      description: |-
+        Browse destinations (public, read-only).
+
+        Example: GET /api/v1/destinations/?category=beach&search=bali&ordering=-avg_daily_cost
+      parameters:
+      - in: query
+        name: budget_range
+        schema:
+          type: string
+      - in: query
+        name: category
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - adventure
+            - beach
+            - city
+            - cultural
+            - mountain
+            - relaxation
+        description: |-
+          * `beach` - Beach
+          * `mountain` - Mountain
+          * `city` - City
+          * `cultural` - Cultural
+          * `adventure` - Adventure
+          * `relaxation` - Relaxation
+        explode: true
+        style: form
+      - in: query
+        name: climate
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - continental
+            - dry
+            - polar
+            - temperate
+            - tropical
+        description: |-
+          * `tropical` - Tropical
+          * `dry` - Dry
+          * `temperate` - Temperate
+          * `continental` - Continental
+          * `polar` - Polar
+        explode: true
+        style: form
+      - in: query
+        name: country
+        schema:
+          type: string
+      - in: query
+        name: max_cost
+        schema:
+          type: number
+      - in: query
+        name: min_cost
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDestinationListList'
+          description: ''
+  /api/v1/destinations/{id}/:
+    get:
+      operationId: v1_destinations_retrieve
+      description: |-
+        Browse destinations (public, read-only).
+
+        Example: GET /api/v1/destinations/?category=beach&search=bali&ordering=-avg_daily_cost
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this destination.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationDetail'
+          description: ''
+  /api/v1/destinations/{id}/popular_activities/:
+    get:
+      operationId: v1_destinations_popular_activities_retrieve
+      description: Activities at this destination ranked by number of bookings.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this destination.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationDetail'
+          description: ''
+  /api/v1/destinations/{id}/upload-image/:
+    post:
+      operationId: v1_destinations_upload_image_create
+      description: 'Admin only: upload a destination photo (multipart, field ''image'').'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this destination.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DestinationImage'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DestinationImage'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationImage'
+          description: ''
+  /api/v1/destinations/{id}/weather_info/:
+    get:
+      operationId: v1_destinations_weather_info_retrieve
+      description: Seasonal weather profile based on the destination's climate.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this destination.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationDetail'
+          description: ''
+  /api/v1/destinations/recommendations/:
+    get:
+      operationId: v1_destinations_recommendations_list
+      description: |-
+        Personalised destination recommendations from preferences, favourites and past trips.
+
+        Example: GET /api/v1/destinations/recommendations/?limit=5
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecommendedDestination'
+          description: ''
+  /api/v1/destinations/search/:
+    get:
+      operationId: v1_destinations_search_list
+      description: GET /destinations/search/?q=beach&min_cost=50&max_cost=200&sort=rating
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DestinationList'
+          description: ''
+    post:
+      operationId: v1_destinations_search_create
+      description: Save the current search as a preference for later.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSearch'
+          description: ''
+  /api/v1/destinations/slug/{slug}/:
+    get:
+      operationId: v1_destinations_slug_retrieve
+      description: Retrieve a destination by its URL slug.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DestinationDetail'
+          description: ''
+  /api/v1/expenses/:
+    get:
+      operationId: v1_expenses_list
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExpenseList'
+          description: ''
+    post:
+      operationId: v1_expenses_create
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Expense'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Expense'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Expense'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+  /api/v1/expenses/{id}/:
+    get:
+      operationId: v1_expenses_retrieve
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+    put:
+      operationId: v1_expenses_update
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Expense'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Expense'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Expense'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+    patch:
+      operationId: v1_expenses_partial_update
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExpense'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExpense'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExpense'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+    delete:
+      operationId: v1_expenses_destroy
+      description: |-
+        Expenses on trips you can see; only editors may add, change or delete.
+
+        Example: GET /api/v1/expenses/?itinerary=4&category=food&ordering=-amount
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/expenses/summary/:
+    get:
+      operationId: v1_expenses_summary_retrieve
+      description: Totals per category for the filtered expenses (use ?itinerary=<id>).
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+          description: ''
+  /api/v1/itineraries/:
+    get:
+      operationId: v1_itineraries_list
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedItineraryListList'
+          description: ''
+    post:
+      operationId: v1_itineraries_create
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/{id}/:
+    get:
+      operationId: v1_itineraries_retrieve
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItineraryDetail'
+          description: ''
+    put:
+      operationId: v1_itineraries_update
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+    patch:
+      operationId: v1_itineraries_partial_update
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedItinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedItinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedItinerary'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+    delete:
+      operationId: v1_itineraries_destroy
+      description: |-
+        CRUD for itineraries plus duplicate, export_pdf, share, upcoming and status actions.
+
+        Example: GET /api/v1/itineraries/?status=planning&search=paris&ordering=-start_date
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/itineraries/{id}/duplicate/:
+    post:
+      operationId: v1_itineraries_duplicate_create
+      description: Copy a trip (day plans and budget split, not bookings) to a new
+        planning-stage trip.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/{id}/export-pdf/:
+    get:
+      operationId: v1_itineraries_export_pdf_retrieve
+      description: Download the itinerary as a PDF.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/{id}/share/:
+    post:
+      operationId: v1_itineraries_share_create
+      description: Share the itinerary with another user by email (owner only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/{id}/status/:
+    post:
+      operationId: v1_itineraries_status_create
+      description: Change the trip status (validated transitions).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/{trip_id}/collaborators/:
+    get:
+      operationId: v1_itineraries_collaborators_list
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collaboration'
+          description: ''
+    post:
+      operationId: v1_itineraries_collaborators_create
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+          description: ''
+    patch:
+      operationId: v1_itineraries_collaborators_partial_update
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+          description: ''
+    delete:
+      operationId: v1_itineraries_collaborators_destroy
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/itineraries/{trip_id}/collaborators/{user_id}/:
+    get:
+      operationId: v1_itineraries_collaborators_list_2
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collaboration'
+          description: ''
+    post:
+      operationId: v1_itineraries_collaborators_create_2
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ShareItinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+          description: ''
+    patch:
+      operationId: v1_itineraries_collaborators_partial_update_2
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCollaboratorRole'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+          description: ''
+    delete:
+      operationId: v1_itineraries_collaborators_destroy_2
+      description: 'Manage collaborators: GET list, POST add, PATCH change role, DELETE
+        remove.'
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/itineraries/{trip_id}/documents/:
+    get:
+      operationId: v1_itineraries_documents_list
+      description: GET the documents of a trip or POST (multipart) a new PDF/photo.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedItineraryDocumentList'
+          description: ''
+    post:
+      operationId: v1_itineraries_documents_create
+      description: GET the documents of a trip or POST (multipart) a new PDF/photo.
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ItineraryDocument'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ItineraryDocument'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItineraryDocument'
+          description: ''
+  /api/v1/itineraries/{trip_id}/documents/{id}/:
+    get:
+      operationId: v1_itineraries_documents_retrieve
+      description: Retrieve or delete one document (delete needs edit rights).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItineraryDocument'
+          description: ''
+    delete:
+      operationId: v1_itineraries_documents_destroy
+      description: Retrieve or delete one document (delete needs edit rights).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/itineraries/{trip_id}/report/:
+    get:
+      operationId: v1_itineraries_report_retrieve
+      description: |-
+        Comprehensive report: budget vs actual, bookings, day plans and collaborators.
+
+        Example: GET /api/v1/itineraries/12/report/
+      parameters:
+      - in: path
+        name: trip_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/itineraries/mine/:
+    get:
+      operationId: v1_itineraries_mine_list
+      description: List the trips you own, or create a new one.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedItineraryListList'
+          description: ''
+    post:
+      operationId: v1_itineraries_mine_create
+      description: List the trips you own, or create a new one.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Itinerary'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/itineraries/search/:
+    get:
+      operationId: v1_itineraries_search_list
+      description: |-
+        GET: search trips with filters and relevance ranking. POST: save the search.
+
+        Example: GET /api/v1/itineraries/search/?q=paris&status=planning&min_budget=500&ordering=budget
+      parameters:
+      - in: query
+        name: max_budget
+        schema:
+          type: number
+          format: double
+      - in: query
+        name: min_budget
+        schema:
+          type: number
+          format: double
+      - in: query
+        name: ordering
+        schema:
+          type: string
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Text search
+      - in: query
+        name: status
+        schema:
+          type: array
+          items:
+            type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItineraryList'
+          description: ''
+    post:
+      operationId: v1_itineraries_search_create
+      description: |-
+        GET: search trips with filters and relevance ranking. POST: save the search.
+
+        Example: GET /api/v1/itineraries/search/?q=paris&status=planning&min_budget=500&ordering=budget
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SavedSearch'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedSearch'
+          description: ''
+  /api/v1/itineraries/upcoming/:
+    get:
+      operationId: v1_itineraries_upcoming_retrieve
+      description: Your future trips ordered by start date.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Itinerary'
+          description: ''
+  /api/v1/reviews/:
+    get:
+      operationId: v1_reviews_list
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      parameters:
+      - in: query
+        name: accommodation
+        schema:
+          type: integer
+      - in: query
+        name: activity
+        schema:
+          type: integer
+      - in: query
+        name: destination
+        schema:
+          type: integer
+      - in: query
+        name: max_rating
+        schema:
+          type: integer
+      - in: query
+        name: min_rating
+        schema:
+          type: integer
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: rating
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: integer
+      - in: query
+        name: visited_after
+        schema:
+          type: string
+          format: date
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
+    post:
+      operationId: v1_reviews_create
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/reviews/{id}/:
+    get:
+      operationId: v1_reviews_retrieve
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this review.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    put:
+      operationId: v1_reviews_update
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this review.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    patch:
+      operationId: v1_reviews_partial_update
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this review.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReview'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+    delete:
+      operationId: v1_reviews_destroy
+      description: |-
+        Reviews are public to read; only the author may edit or delete.
+
+        Example: GET /api/v1/reviews/?destination=3&min_rating=4&ordering=-helpful_count
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this review.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/reviews/{id}/helpful/:
+    post:
+      operationId: v1_reviews_helpful_create
+      description: Mark a review as helpful (atomic counter increment).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this review.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Review'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Review'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/reviews/mine/:
+    get:
+      operationId: v1_reviews_mine_retrieve
+      description: Your own reviews.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/reviews/summary/:
+    get:
+      operationId: v1_reviews_summary_retrieve
+      description: 'Rating statistics: /reviews/summary/?destination=1 (or accommodation
+        / activity).'
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+          description: ''
+  /api/v1/reviews/target/{target_type}/{target_id}/:
+    get:
+      operationId: v1_reviews_target_list
+      description: 'List reviews for one item: /reviews/target/<destination|accommodation|activity>/<id>/.'
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: target_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: target_type
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReviewList'
+          description: ''
+components:
+  schemas:
+    Accommodation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        destination:
+          type: integer
+        destination_name:
+          type: string
+          readOnly: true
+        accommodation_type:
+          $ref: '#/components/schemas/AccommodationTypeEnum'
+        type_display:
+          type: string
+          readOnly: true
+        description:
+          type: string
+        price_per_night:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        max_guests:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        amenities: {}
+        address:
+          type: string
+          maxLength: 300
+        contact_email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        contact_phone:
+          type: string
+          maxLength: 20
+        image:
+          type: string
+          format: uri
+          nullable: true
+        is_available:
+          type: boolean
+      required:
+      - accommodation_type
+      - address
+      - description
+      - destination
+      - destination_name
+      - id
+      - max_guests
+      - name
+      - price_per_night
+      - type_display
+    AccommodationTypeEnum:
+      enum:
+      - hotel
+      - hostel
+      - rental
+      - resort
+      - bnb
+      type: string
+      description: |-
+        * `hotel` - Hotel
+        * `hostel` - Hostel
+        * `rental` - Vacation Rental
+        * `resort` - Resort
+        * `bnb` - B&B
+    Activity:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        destination:
+          type: integer
+        destination_name:
+          type: string
+          readOnly: true
+        category:
+          $ref: '#/components/schemas/ActivityCategoryEnum'
+        description:
+          type: string
+        duration_hours:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,1})?$
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        max_participants:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        requirements:
+          type: string
+        image:
+          type: string
+          format: uri
+          nullable: true
+        is_available:
+          type: boolean
+      required:
+      - category
+      - description
+      - destination
+      - destination_name
+      - duration_hours
+      - id
+      - name
+      - price
+    ActivityCategoryEnum:
+      enum:
+      - tour
+      - attraction
+      - dining
+      - shopping
+      - entertainment
+      - outdoor
+      type: string
+      description: |-
+        * `tour` - Tour
+        * `attraction` - Attraction
+        * `dining` - Dining
+        * `shopping` - Shopping
+        * `entertainment` - Entertainment
+        * `outdoor` - Outdoor
+    ActivityLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+          nullable: true
+        username:
+          type: string
+          readOnly: true
+        itinerary:
+          type: integer
+          readOnly: true
+          nullable: true
+        action:
+          allOf:
+          - $ref: '#/components/schemas/ActivityLogActionEnum'
+          readOnly: true
+        action_display:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - action_display
+      - created_at
+      - description
+      - id
+      - itinerary
+      - user
+      - username
+    ActivityLogActionEnum:
+      enum:
+      - created
+      - updated
+      - deleted
+      - status_changed
+      - shared
+      - unshared
+      - booking
+      - expense
+      - document
+      type: string
+      description: |-
+        * `created` - Created
+        * `updated` - Updated
+        * `deleted` - Deleted
+        * `status_changed` - Status changed
+        * `shared` - Shared
+        * `unshared` - Unshared
+        * `booking` - Booking
+        * `expense` - Expense
+        * `document` - Document
+    Booking:
+      type: object
+      description: Create/update bookings. Price, status and code are computed by
+        the server.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        accommodation:
+          type: integer
+          nullable: true
+        activity:
+          type: integer
+          nullable: true
+        item_name:
+          type: string
+          readOnly: true
+          description: Name of the booked accommodation or activity.
+        booking_date:
+          type: string
+          format: date
+        check_in:
+          type: string
+          format: date
+          nullable: true
+        check_out:
+          type: string
+          format: date
+          nullable: true
+        nights:
+          type: string
+          readOnly: true
+          description: Nights for accommodation bookings.
+        guests_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BookingStatusEnum'
+          readOnly: true
+        confirmation_code:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - confirmation_code
+      - created_at
+      - id
+      - item_name
+      - itinerary
+      - nights
+      - price
+      - status
+      - updated_at
+      - user
+    BookingDetail:
+      type: object
+      description: Adds nested accommodation/activity and a refund estimate.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        accommodation:
+          allOf:
+          - $ref: '#/components/schemas/Accommodation'
+          readOnly: true
+        activity:
+          allOf:
+          - $ref: '#/components/schemas/Activity'
+          readOnly: true
+        item_name:
+          type: string
+          readOnly: true
+          description: Name of the booked accommodation or activity.
+        booking_date:
+          type: string
+          format: date
+        check_in:
+          type: string
+          format: date
+          nullable: true
+        check_out:
+          type: string
+          format: date
+          nullable: true
+        nights:
+          type: string
+          readOnly: true
+          description: Nights for accommodation bookings.
+        guests_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BookingStatusEnum'
+          readOnly: true
+        confirmation_code:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        refund_estimate:
+          type: string
+          readOnly: true
+          description: Refund if cancelled today.
+        itinerary_title:
+          type: string
+          readOnly: true
+      required:
+      - accommodation
+      - activity
+      - confirmation_code
+      - created_at
+      - id
+      - item_name
+      - itinerary
+      - itinerary_title
+      - nights
+      - price
+      - refund_estimate
+      - status
+      - updated_at
+      - user
+    BookingStatusEnum:
+      enum:
+      - pending
+      - confirmed
+      - cancelled
+      - completed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `confirmed` - Confirmed
+        * `cancelled` - Cancelled
+        * `completed` - Completed
+    Budget:
+      type: object
+      description: Per-category allocation with computed totals.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+          readOnly: true
+        accommodation_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        activities_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        food_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        transport_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        shopping_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        miscellaneous_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Sum of all category allocations.
+        spent_by_category:
+          type: string
+          readOnly: true
+          description: Actual spending per category.
+        unallocated:
+          type: string
+          readOnly: true
+          description: Trip budget minus allocations.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - itinerary
+      - spent_by_category
+      - total_budget
+      - unallocated
+      - updated_at
+    BulkBookingItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        action:
+          $ref: '#/components/schemas/BulkBookingItemActionEnum'
+        notes:
+          type: string
+      required:
+      - action
+      - id
+    BulkBookingItemActionEnum:
+      enum:
+      - confirm
+      - cancel
+      type: string
+      description: |-
+        * `confirm` - confirm
+        * `cancel` - cancel
+    BulkBookingUpdate:
+      type: object
+      properties:
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkBookingItem'
+        all_or_nothing:
+          type: boolean
+          default: false
+          description: Roll everything back if any item fails.
+      required:
+      - updates
+    ChangePassword:
+      type: object
+      properties:
+        old_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+      required:
+      - new_password
+      - old_password
+    ClimateEnum:
+      enum:
+      - tropical
+      - dry
+      - temperate
+      - continental
+      - polar
+      type: string
+      description: |-
+        * `tropical` - Tropical
+        * `dry` - Dry
+        * `temperate` - Temperate
+        * `continental` - Continental
+        * `polar` - Polar
+    Collaboration:
+      type: object
+      description: Collaboration through-model with the user's public details.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/CollaboratorRoleEnum'
+        invited_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - email
+      - id
+      - invited_at
+      - user
+      - username
+    CollaboratorRoleEnum:
+      enum:
+      - viewer
+      - editor
+      - admin
+      type: string
+      description: |-
+        * `viewer` - Viewer
+        * `editor` - Editor
+        * `admin` - Admin
+    DailyPlan:
+      type: object
+      description: A single day in an itinerary.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        day_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+          maxLength: 200
+        notes:
+          type: string
+        activities:
+          type: array
+          items:
+            type: integer
+        activities_count:
+          type: string
+          readOnly: true
+          description: Number of activities planned that day.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - activities_count
+      - created_at
+      - date
+      - day_number
+      - id
+      - itinerary
+      - title
+      - updated_at
+    DestinationCategoryEnum:
+      enum:
+      - beach
+      - mountain
+      - city
+      - cultural
+      - adventure
+      - relaxation
+      type: string
+      description: |-
+        * `beach` - Beach
+        * `mountain` - Mountain
+        * `city` - City
+        * `cultural` - Cultural
+        * `adventure` - Adventure
+        * `relaxation` - Relaxation
+    DestinationDetail:
+      type: object
+      description: Detailed serializer (extends the list serializer).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        country:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/DestinationCategoryEnum'
+        climate:
+          $ref: '#/components/schemas/ClimateEnum'
+        avg_daily_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Average daily spend per traveller (USD).
+        image:
+          type: string
+          format: uri
+          nullable: true
+        average_rating:
+          type: string
+          readOnly: true
+          description: Mean review rating (0 when unreviewed).
+        review_count:
+          type: string
+          readOnly: true
+          description: Number of reviews.
+        budget_category:
+          type: string
+          readOnly: true
+          description: budget / moderate / luxury by daily cost.
+        description:
+          type: string
+        best_time_to_visit:
+          type: string
+          maxLength: 200
+        latitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        longitude:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,6})?$
+          nullable: true
+        is_active:
+          type: boolean
+        total_itineraries:
+          type: string
+          readOnly: true
+          description: Trips planned to this destination.
+        top_activities:
+          type: string
+          readOnly: true
+          description: Up to 5 available activities.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - average_rating
+      - avg_daily_cost
+      - budget_category
+      - category
+      - climate
+      - country
+      - created_at
+      - description
+      - id
+      - name
+      - review_count
+      - slug
+      - top_activities
+      - total_itineraries
+      - updated_at
+    DestinationImage:
+      type: object
+      description: Upload/replace a destination photo (size and type validated).
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        image:
+          type: string
+          format: uri
+          description: JPG or PNG, max 5 MB.
+      required:
+      - id
+      - image
+    DestinationList:
+      type: object
+      description: Lightweight serializer for list views.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        country:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/DestinationCategoryEnum'
+        climate:
+          $ref: '#/components/schemas/ClimateEnum'
+        avg_daily_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Average daily spend per traveller (USD).
+        image:
+          type: string
+          format: uri
+          nullable: true
+        average_rating:
+          type: string
+          readOnly: true
+          description: Mean review rating (0 when unreviewed).
+        review_count:
+          type: string
+          readOnly: true
+          description: Number of reviews.
+        budget_category:
+          type: string
+          readOnly: true
+          description: budget / moderate / luxury by daily cost.
+      required:
+      - average_rating
+      - avg_daily_cost
+      - budget_category
+      - category
+      - climate
+      - country
+      - id
+      - name
+      - review_count
+      - slug
+    Expense:
+      type: object
+      description: Record spending against a trip.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        category:
+          $ref: '#/components/schemas/ExpenseCategoryEnum'
+        description:
+          type: string
+          maxLength: 200
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        date:
+          type: string
+          format: date
+        receipt:
+          type: string
+          format: uri
+          nullable: true
+        notes:
+          type: string
+        paid_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        paid_by_username:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - category
+      - created_at
+      - date
+      - description
+      - id
+      - itinerary
+      - paid_by
+      - paid_by_username
+      - updated_at
+    ExpenseCategoryEnum:
+      enum:
+      - accommodation
+      - activities
+      - food
+      - transport
+      - shopping
+      - miscellaneous
+      type: string
+      description: |-
+        * `accommodation` - Accommodation
+        * `activities` - Activities
+        * `food` - Food
+        * `transport` - Transport
+        * `shopping` - Shopping
+        * `miscellaneous` - Miscellaneous
+    Itinerary:
+      type: object
+      description: Create/update serializer. Status changes go through the set_status
+        action.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration_days:
+          type: string
+          readOnly: true
+          description: Inclusive number of days.
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        budget_remaining:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Budget minus actual spending.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ItineraryStatusEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+        my_role:
+          type: string
+          readOnly: true
+          description: 'Your role: owner, admin, editor, viewer.'
+        description:
+          type: string
+        destination:
+          type: integer
+        owner:
+          type: integer
+          readOnly: true
+        actual_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actual_spent
+      - budget
+      - budget_remaining
+      - created_at
+      - destination
+      - duration_days
+      - end_date
+      - id
+      - my_role
+      - owner
+      - start_date
+      - status
+      - title
+      - updated_at
+    ItineraryDetail:
+      type: object
+      description: Detailed serializer with nested objects.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration_days:
+          type: string
+          readOnly: true
+          description: Inclusive number of days.
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        budget_remaining:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Budget minus actual spending.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ItineraryStatusEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+        my_role:
+          type: string
+          readOnly: true
+          description: 'Your role: owner, admin, editor, viewer.'
+        description:
+          type: string
+        destination:
+          allOf:
+          - $ref: '#/components/schemas/DestinationList'
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+        owner_username:
+          type: string
+          readOnly: true
+        actual_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        daily_plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyPlan'
+          readOnly: true
+        collaborations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Collaboration'
+          readOnly: true
+        bookings_count:
+          type: string
+          readOnly: true
+          description: Number of bookings on this trip.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - bookings_count
+      - budget
+      - budget_remaining
+      - collaborations
+      - created_at
+      - daily_plans
+      - destination
+      - duration_days
+      - end_date
+      - id
+      - my_role
+      - owner
+      - owner_username
+      - start_date
+      - status
+      - title
+      - updated_at
+    ItineraryDocument:
+      type: object
+      description: Upload an itinerary PDF or photo.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        file:
+          type: string
+          format: uri
+          description: PDF, JPG or PNG up to 5 MB.
+        file_type:
+          type: string
+          readOnly: true
+        file_size:
+          type: integer
+          readOnly: true
+          description: Size in bytes
+        uploaded_by_username:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - file
+      - file_size
+      - file_type
+      - id
+      - itinerary
+      - title
+      - uploaded_by_username
+    ItineraryList:
+      type: object
+      description: Lightweight list serializer.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration_days:
+          type: string
+          readOnly: true
+          description: Inclusive number of days.
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        budget_remaining:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Budget minus actual spending.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ItineraryStatusEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+        my_role:
+          type: string
+          readOnly: true
+          description: 'Your role: owner, admin, editor, viewer.'
+        destination:
+          type: integer
+        destination_name:
+          type: string
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+        owner_username:
+          type: string
+          readOnly: true
+      required:
+      - budget
+      - budget_remaining
+      - destination
+      - destination_name
+      - duration_days
+      - end_date
+      - id
+      - my_role
+      - owner
+      - owner_username
+      - start_date
+      - status
+      - title
+    ItineraryStatusEnum:
+      enum:
+      - planning
+      - booked
+      - in_progress
+      - completed
+      - cancelled
+      type: string
+      description: |-
+        * `planning` - Planning
+        * `booked` - Booked
+        * `in_progress` - In Progress
+        * `completed` - Completed
+        * `cancelled` - Cancelled
+    Login:
+      type: object
+      description: Credentials (username or email) for token login.
+      properties:
+        username:
+          type: string
+          description: Username or email address.
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - password
+      - username
+    Logout:
+      type: object
+      properties:
+        refresh:
+          type: string
+          description: The refresh token to blacklist.
+      required:
+      - refresh
+    PaginatedAccommodationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Accommodation'
+    PaginatedActivityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Activity'
+    PaginatedActivityLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityLog'
+    PaginatedBookingList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+    PaginatedDailyPlanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyPlan'
+    PaginatedDestinationListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DestinationList'
+    PaginatedExpenseList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Expense'
+    PaginatedItineraryDocumentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItineraryDocument'
+    PaginatedItineraryListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItineraryList'
+    PaginatedReviewList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+    PasswordResetConfirm:
+      type: object
+      description: Validates uid + token and exposes the user as attrs['user'].
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 8
+      required:
+      - new_password
+      - token
+      - uid
+    PasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    PatchedBooking:
+      type: object
+      description: Create/update bookings. Price, status and code are computed by
+        the server.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        accommodation:
+          type: integer
+          nullable: true
+        activity:
+          type: integer
+          nullable: true
+        item_name:
+          type: string
+          readOnly: true
+          description: Name of the booked accommodation or activity.
+        booking_date:
+          type: string
+          format: date
+        check_in:
+          type: string
+          format: date
+          nullable: true
+        check_out:
+          type: string
+          format: date
+          nullable: true
+        nights:
+          type: string
+          readOnly: true
+          description: Nights for accommodation bookings.
+        guests_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BookingStatusEnum'
+          readOnly: true
+        confirmation_code:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedBookingDetail:
+      type: object
+      description: Adds nested accommodation/activity and a refund estimate.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        accommodation:
+          allOf:
+          - $ref: '#/components/schemas/Accommodation'
+          readOnly: true
+        activity:
+          allOf:
+          - $ref: '#/components/schemas/Activity'
+          readOnly: true
+        item_name:
+          type: string
+          readOnly: true
+          description: Name of the booked accommodation or activity.
+        booking_date:
+          type: string
+          format: date
+        check_in:
+          type: string
+          format: date
+          nullable: true
+        check_out:
+          type: string
+          format: date
+          nullable: true
+        nights:
+          type: string
+          readOnly: true
+          description: Nights for accommodation bookings.
+        guests_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 1
+          format: int64
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BookingStatusEnum'
+          readOnly: true
+        confirmation_code:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        refund_estimate:
+          type: string
+          readOnly: true
+          description: Refund if cancelled today.
+        itinerary_title:
+          type: string
+          readOnly: true
+    PatchedBudget:
+      type: object
+      description: Per-category allocation with computed totals.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+          readOnly: true
+        accommodation_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        activities_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        food_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        transport_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        shopping_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        miscellaneous_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        total_budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Sum of all category allocations.
+        spent_by_category:
+          type: string
+          readOnly: true
+          description: Actual spending per category.
+        unallocated:
+          type: string
+          readOnly: true
+          description: Trip budget minus allocations.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCollaboratorRole:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/CollaboratorRoleEnum'
+    PatchedDailyPlan:
+      type: object
+      description: A single day in an itinerary.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        day_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+          maxLength: 200
+        notes:
+          type: string
+        activities:
+          type: array
+          items:
+            type: integer
+        activities_count:
+          type: string
+          readOnly: true
+          description: Number of activities planned that day.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedExpense:
+      type: object
+      description: Record spending against a trip.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        itinerary:
+          type: integer
+        category:
+          $ref: '#/components/schemas/ExpenseCategoryEnum'
+        description:
+          type: string
+          maxLength: 200
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        date:
+          type: string
+          format: date
+        receipt:
+          type: string
+          format: uri
+          nullable: true
+        notes:
+          type: string
+        paid_by:
+          type: integer
+          readOnly: true
+          nullable: true
+        paid_by_username:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedItinerary:
+      type: object
+      description: Create/update serializer. Status changes go through the set_status
+        action.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        duration_days:
+          type: string
+          readOnly: true
+          description: Inclusive number of days.
+        budget:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        budget_remaining:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Budget minus actual spending.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ItineraryStatusEnum'
+          readOnly: true
+        is_public:
+          type: boolean
+        my_role:
+          type: string
+          readOnly: true
+          description: 'Your role: owner, admin, editor, viewer.'
+        description:
+          type: string
+        destination:
+          type: integer
+        owner:
+          type: integer
+          readOnly: true
+        actual_spent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedReview:
+      type: object
+      description: Rate one destination, accommodation or activity.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        destination:
+          type: integer
+          nullable: true
+        accommodation:
+          type: integer
+          nullable: true
+        activity:
+          type: integer
+          nullable: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        title:
+          type: string
+          maxLength: 200
+        content:
+          type: string
+        visit_date:
+          type: string
+          format: date
+        images: {}
+        helpful_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUser:
+      type: object
+      description: Profile representation and update.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+          description: First + last name, or the username.
+        phone:
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9 \-]{6,20}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        bio:
+          type: string
+          maxLength: 500
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        travel_preferences:
+          description: 'e.g. {''categories'': [''beach''], ''climates'': [''tropical''],
+            ''max_daily_budget'': 200}'
+        favorite_destinations:
+          type: array
+          items:
+            type: integer
+        owned_trips_count:
+          type: string
+          readOnly: true
+          description: Number of trips this user owns.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    RecommendedDestination:
+      type: object
+      description: List serializer plus recommendation score and reasons.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        country:
+          type: string
+          maxLength: 100
+        category:
+          $ref: '#/components/schemas/DestinationCategoryEnum'
+        climate:
+          $ref: '#/components/schemas/ClimateEnum'
+        avg_daily_cost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Average daily spend per traveller (USD).
+        image:
+          type: string
+          format: uri
+          nullable: true
+        average_rating:
+          type: string
+          readOnly: true
+          description: Mean review rating (0 when unreviewed).
+        review_count:
+          type: string
+          readOnly: true
+          description: Number of reviews.
+        budget_category:
+          type: string
+          readOnly: true
+          description: budget / moderate / luxury by daily cost.
+        score:
+          type: string
+          readOnly: true
+          description: Higher is a better match.
+        reasons:
+          type: string
+          readOnly: true
+          description: Why this destination was suggested.
+      required:
+      - average_rating
+      - avg_daily_cost
+      - budget_category
+      - category
+      - climate
+      - country
+      - id
+      - name
+      - reasons
+      - review_count
+      - score
+      - slug
+    Review:
+      type: object
+      description: Rate one destination, accommodation or activity.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        destination:
+          type: integer
+          nullable: true
+        accommodation:
+          type: integer
+          nullable: true
+        activity:
+          type: integer
+          nullable: true
+        rating:
+          type: integer
+          maximum: 5
+          minimum: 1
+        title:
+          type: string
+          maxLength: 200
+        content:
+          type: string
+        visit_date:
+          type: string
+          format: date
+        images: {}
+        helpful_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - helpful_count
+      - id
+      - rating
+      - title
+      - updated_at
+      - user
+      - username
+      - visit_date
+    SavedSearch:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        search_type:
+          $ref: '#/components/schemas/SearchTypeEnum'
+        query_params: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - search_type
+    SearchTypeEnum:
+      enum:
+      - trip
+      - destination
+      type: string
+      description: |-
+        * `trip` - Trip
+        * `destination` - Destination
+    ShareItinerary:
+      type: object
+      description: Add a collaborator by email with a role.
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email of an existing user.
+        role:
+          allOf:
+          - $ref: '#/components/schemas/CollaboratorRoleEnum'
+          default: viewer
+      required:
+      - email
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      description: Profile representation and update.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        full_name:
+          type: string
+          readOnly: true
+          description: First + last name, or the username.
+        phone:
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9 \-]{6,20}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+        date_of_birth:
+          type: string
+          format: date
+          nullable: true
+        bio:
+          type: string
+          maxLength: 500
+        profile_picture:
+          type: string
+          format: uri
+          nullable: true
+        travel_preferences:
+          description: 'e.g. {''categories'': [''beach''], ''climates'': [''tropical''],
+            ''max_daily_budget'': 200}'
+        favorite_destinations:
+          type: array
+          items:
+            type: integer
+        owned_trips_count:
+          type: string
+          readOnly: true
+          description: Number of trips this user owns.
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - email
+      - full_name
+      - id
+      - owned_trips_count
+      - updated_at
+      - username
+    UserRegistration:
+      type: object
+      description: Create an account; passwords are write-only.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          description: At least 8 characters; validated by Django's password rules.
+          minLength: 8
+        password_confirm:
+          type: string
+          writeOnly: true
+          description: Must match password.
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        phone:
+          oneOf:
+          - type: string
+            pattern: ^\+?[0-9 \-]{6,20}$
+            maxLength: 20
+          - type: string
+            maxLength: 0
+      required:
+      - email
+      - id
+      - password
+      - password_confirm
+      - username
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
