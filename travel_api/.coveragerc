@@ -1,0 +1,8 @@
+[run]
+omit =
+    */migrations/*
+    manage.py
+    travel_api/wsgi.py
+    travel_api/asgi.py
+    */tests.py
+    conftest.py
